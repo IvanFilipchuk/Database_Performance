@@ -16,6 +16,8 @@ services:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
       POSTGRES_DB: air_tickets
+    volumes:
+      - ./db_structure.sql:/docker-entrypoint-initdb.d/db_structure.sql
 
   mariadb:
     image: mariadb:latest
