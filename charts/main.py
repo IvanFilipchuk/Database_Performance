@@ -6,7 +6,7 @@ iterations = []
 jdbc_times = []
 
 # Read data from CSV file
-with open('jdbc_execution_time_1000.csv', 'r') as file:
+with open('jdbc_mDB_execution_time_1000.csv', 'r') as file:
     reader = csv.reader(file)
     next(reader)  # Skip header
     for row in reader:

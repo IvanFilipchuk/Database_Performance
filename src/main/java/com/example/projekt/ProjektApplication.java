@@ -26,7 +26,7 @@ public class ProjektApplication {
         try {
             FileWriter writer = new FileWriter("charts/jdbc_execution_time_1000.csv");
             writer.append("1000/PostgreSQL/Import\n");
-
+            executeSqlJdbc("db_structure.sql");
             for (int i = 0; i < 1000; i++) {
                 long jdbcStartTime = System.nanoTime();
                 executeSqlJdbc("imports_1000.sql");
