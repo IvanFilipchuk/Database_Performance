@@ -1,3 +1,4 @@
+
 insert into airport (id, airport_code, country, passenger_traffice) values (1, 'BWI', 'Mexico', 4674);
 insert into airport (id, airport_code, country, passenger_traffice) values (2, 'WPL', 'Russia', 5698);
 insert into airport (id, airport_code, country, passenger_traffice) values (3, 'XMY', 'Indonesia', 7944);

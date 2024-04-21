@@ -1,0 +1,1 @@
+SELECT id, first_name, last_name, rating FROM passengers WHERE rating > 4 GROUP BY id;
