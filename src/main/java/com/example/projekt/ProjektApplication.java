@@ -26,15 +26,15 @@ public class ProjektApplication {
         try {
             FileWriter writer = new FileWriter("charts/jdbc_execution_time_1000.csv");
             writer.append("1000/PostgreSQL/Import\n");
-            executeSqlJdbc("db_structure.sql");
+            executeSqlJdbc("PostgreSQL_data/db_structure.sql");
             for (int i = 0; i < 1000; i++) {
                 long jdbcStartTime = System.nanoTime();
-                executeSqlJdbc("imports_1000.sql");
+                executeSqlJdbc("PostgreSQL_data/imports_1000.sql");
                 long jdbcEndTime = System.nanoTime();
                 float jdbcElapsedTime = (float) (TimeUnit.NANOSECONDS.toMillis(jdbcEndTime - jdbcStartTime)/1000.0);
                 writer.append(String.valueOf(i + 1)).append(",").append(String.valueOf(jdbcElapsedTime)).append("\n");
 
-                executeSqlJdbc("delete_data.sql");
+                executeSqlJdbc("PostgreSQL_data/delete_data.sql");
             }
             writer.flush();
             writer.close();
@@ -47,12 +47,12 @@ public class ProjektApplication {
 
             for (int i = 0; i < 1000; i++) {
                 long jdbcStartTime = System.nanoTime();
-                executeSqlJdbc("imports_10000.sql");
+                executeSqlJdbc("PostgreSQL_data/imports_10000.sql");
                 long jdbcEndTime = System.nanoTime();
                 float jdbcElapsedTime = (float) (TimeUnit.NANOSECONDS.toMillis(jdbcEndTime - jdbcStartTime)/1000.0);
                 writer.append(String.valueOf(i + 1)).append(",").append(String.valueOf(jdbcElapsedTime)).append("\n");
 
-                executeSqlJdbc("delete_data.sql");
+                executeSqlJdbc("PostgreSQL_data/delete_data.sql");
             }
             writer.flush();
             writer.close();
