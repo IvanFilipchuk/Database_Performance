@@ -1,5 +1,7 @@
 package com.example.projekt;
 
+import com.couchbase.client.core.deps.com.fasterxml.jackson.databind.JsonNode;
+import com.couchbase.client.core.deps.com.fasterxml.jackson.databind.ObjectMapper;
 import com.couchbase.client.core.error.AmbiguousTimeoutException;
 import com.couchbase.client.core.error.CouchbaseException;
 import com.couchbase.client.core.error.DocumentExistsException;
@@ -10,10 +12,8 @@ import com.couchbase.client.java.kv.InsertOptions;
 import com.couchbase.client.java.kv.MutationResult;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.bind.annotation.RestController;
-import java.io.IOException;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.FileWriter;
+
+import java.io.*;
 
 import java.util.concurrent.TimeUnit;
 
@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit;
 @SpringBootApplication
 @RestController
 public class CouchbaseApplication {
-    //    public static void main(String[] args) {
+//        public static void main(String[] args) {
 //        // Konfiguracja połączenia z bazą danych Couchbase
 //        Cluster cluster = Cluster.connect("localhost", "root", "root");
 //        Collection collection = cluster.bucket("default").defaultCollection();
@@ -117,7 +117,7 @@ public class CouchbaseApplication {
 //        }
 //    }
 //
-
+//
 //    public static void main(String[] args) {
 //        String connectionString = "couchbase://127.0.0.1";
 //        String username = "test";
@@ -261,7 +261,7 @@ public class CouchbaseApplication {
 //        }
 //    }
 
-    //    public static void main(String[] args) {
+//        public static void main(String[] args) {
 //        String connectionString = "couchbase://127.0.0.1";
 //        String username = "test";
 //        String password = "password";
@@ -337,179 +337,178 @@ public class CouchbaseApplication {
 //            e.printStackTrace();
 //        }
 //    }
-//public static void main(String[] args) {
-//    String connectionString = "couchbase://127.0.0.1";
-//    String username = "test";
-//    String password = "password";
-//    String bucketName = "default";
-//    String collectionName = "_default";
-//    String jsonFilePath = "INSERT_DATA_COUCHBASE_1000.json";
-//    int importCount = 1000;
-//
-//    try {
-//        FileWriter csvWriter = new FileWriter("couchbase_import_execution_time.csv");
-//        csvWriter.append("1000/Couchbase/Import\n");
-//
-//        for (int i = 0; i < importCount; i++) {
-//            System.out.println("Starting import " + (i + 1) + "...");
-//            Cluster cluster = Cluster.connect(connectionString, username, password);
-//            Collection collection = cluster.bucket(bucketName).defaultCollection();
-//
-//            try (BufferedReader reader = new BufferedReader(new FileReader(jsonFilePath))) {
-//                StringBuilder jsonContent = new StringBuilder();
-//                String line;
-//                while ((line = reader.readLine()) != null) {
-//                    jsonContent.append(line);
-//                }
-//
-//                JsonArray jsonArray = JsonArray.fromJson(jsonContent.toString());
-//
-//                long totalExecutionTime = 0;
-//                int documentCount = 0;
-//                for (Object obj : jsonArray) {
-//                    JsonObject data = (JsonObject) obj;
-//
-//                    boolean success = false;
-//                    int retryCount = 0;
-//                    final int maxRetries = 10;
-//                    final int retryIntervalMillis = 1000;
-//
-//                    while (!success && retryCount < maxRetries) {
-//                        try {
-//                            long startTime = System.nanoTime();
-//                            MutationResult result = collection.insert(String.valueOf(documentCount), data, InsertOptions.insertOptions());
-//                            long endTime = System.nanoTime();
-//
-//                            float elapsedTimeMs = (float) (TimeUnit.NANOSECONDS.toMillis(endTime - startTime) / 1000.0);
-//                            totalExecutionTime += elapsedTimeMs;
-//                            success = true;
-//                        } catch (AmbiguousTimeoutException e) {
-//                            Thread.sleep(retryIntervalMillis);
-//                            retryCount++;
-//                        } catch (DocumentExistsException e) {
-//                            // Document with the given ID already exists, skip insertion
-//                            System.out.println("Document with ID " + documentCount + " already exists, skipping insertion.");
-//                            success = true; // Mark as success to proceed to the next document
-//                        }
-//                    }
-//
-//                    if (!success) {
-//                        System.out.println("Failed to insert data into the collection after " + maxRetries + " attempts.");
-//                    }
-//
-//                    documentCount++;
-//                }
-//
-//                float averageExecutionTime = totalExecutionTime / jsonArray.size();
-//                csvWriter.append(String.valueOf(i + 1)).append(",").append(String.valueOf(averageExecutionTime)).append("\n");
-//                System.out.println("Import " + (i + 1) + " completed.");
-//
-//                // Delete all documents after import
-//                cluster.query("DELETE FROM `" + bucketName + "`");
-//                System.out.println("Deleted all documents after import.");
-//
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            } finally {
-//                cluster.disconnect();
-//            }
-//        }
-//
-//        csvWriter.flush();
-//        csvWriter.close();
-//
-//    } catch (Exception e) {
-//        e.printStackTrace();
-//    }
-//    }
-    public static void main(String[] args) {
-        String connectionString = "couchbase://127.0.0.1";
-        String username = "test";
-        String password = "password";
-        String bucketName = "default";
-        String collectionName = "_default";
-        String jsonFilePath = "INSERT_DATA_COUCHBASE_1000.json";
-        int importCount = 1000;
+public static void main(String[] args) {
+    String connectionString = "couchbase://127.0.0.1";
+    String username = "test";
+    String password = "password";
+    String bucketName = "default";
+    String collectionName = "_default";
+    String jsonFilePath = "INSERT_DATA_COUCHBASE_1000.json";
 
-        try {
-            FileWriter csvWriter = new FileWriter("couchbase1_import_execution_time.csv");
-            csvWriter.append("1000/Couchbase/Import\n");
+    try {
+        FileWriter csvWriter = new FileWriter("couchbase_import_execution_time.csv");
+        csvWriter.append("1000/Couchbase/Import\n");
 
-            for (int i = 0; i < importCount; i++) {
-                long startTime = System.nanoTime();
-                System.out.println("Starting import " + (i + 1) + "...");
-                Cluster cluster = Cluster.connect(connectionString, username, password);
-                Collection collection = cluster.bucket(bucketName).defaultCollection();
+        for (int i = 0; i < 1000; i++) {
+            System.out.println("Starting import " + (i + 1) + "...");
+            Cluster cluster = Cluster.connect(connectionString, username, password);
+            Collection collection = cluster.bucket(bucketName).defaultCollection();
 
-                try (BufferedReader reader = new BufferedReader(new FileReader(jsonFilePath))) {
-                    StringBuilder jsonContent = new StringBuilder();
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        jsonContent.append(line);
-                    }
-
-                    JsonArray jsonArray = JsonArray.fromJson(jsonContent.toString());
-
-                    long totalExecutionTime = 0;
-                    int documentCount = 0;
-                    for (Object obj : jsonArray) {
-                        JsonObject data = (JsonObject) obj;
-
-                        boolean success = false;
-                        int retryCount = 0;
-                        final int maxRetries = 10;
-                        final int retryIntervalMillis = 1000;
-
-                        while (!success && retryCount < maxRetries) {
-                            try {
-                                long insertStartTime = System.nanoTime();
-                                MutationResult result = collection.insert(String.valueOf(documentCount), data, InsertOptions.insertOptions());
-                                long insertEndTime = System.nanoTime();
-
-                                float elapsedTimeMs = (float) (TimeUnit.NANOSECONDS.toMillis(insertEndTime - insertStartTime) / 1000.0);
-                                totalExecutionTime += elapsedTimeMs;
-                                success = true;
-                            } catch (AmbiguousTimeoutException e) {
-                                Thread.sleep(retryIntervalMillis);
-                                retryCount++;
-                            } catch (DocumentExistsException e) {
-                                // Document with the given ID already exists, skip insertion
-                                System.out.println("Document with ID " + documentCount + " already exists, skipping insertion.");
-                                success = true; // Mark as success to proceed to the next document
-                            }
-                        }
-
-                        if (!success) {
-                            System.out.println("Failed to insert data into the collection after " + maxRetries + " attempts.");
-                        }
-
-                        documentCount++;
-                    }
-
-                    float averageExecutionTime = totalExecutionTime / jsonArray.size();
-                    //csvWriter.append(String.valueOf(i + 1)).append(",").append(String.valueOf(averageExecutionTime)).append("\n");
-                    System.out.println("Import " + (i + 1) + " completed.");
-
-                    // Delete all documents after import
-                    cluster.query("DELETE FROM `" + bucketName + "`");
-                    System.out.println("Deleted all documents after import.");
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } finally {
-                    cluster.disconnect();
+            try (BufferedReader reader = new BufferedReader(new FileReader(jsonFilePath))) {
+                StringBuilder jsonContent = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    jsonContent.append(line);
                 }
 
-                long endTime = System.nanoTime();
-                float elapsedTimeMs = (float) (TimeUnit.NANOSECONDS.toMillis(endTime - startTime) / 1000.0);
-                csvWriter.append(String.valueOf(i + 1)).append(",").append(String.valueOf(elapsedTimeMs)).append("\n");
+                JsonArray jsonArray = JsonArray.fromJson(jsonContent.toString());
+
+                long totalExecutionTime = 0;
+                int documentCount = 0;
+                for (Object obj : jsonArray) {
+                    JsonObject data = (JsonObject) obj;
+
+                    boolean success = false;
+                    int retryCount = 0;
+                    final int maxRetries = 10;
+                    final int retryIntervalMillis = 1000;
+
+                    while (!success && retryCount < maxRetries) {
+                        try {
+                            long startTime = System.nanoTime();
+                            MutationResult result = collection.insert(String.valueOf(documentCount), data, InsertOptions.insertOptions());
+                            long endTime = System.nanoTime();
+
+                            float elapsedTimeMs = (float) (TimeUnit.NANOSECONDS.toMillis(endTime - startTime) / 1000.0);
+                            totalExecutionTime += elapsedTimeMs;
+                            success = true;
+                        } catch (AmbiguousTimeoutException e) {
+                            Thread.sleep(retryIntervalMillis);
+                            retryCount++;
+                        } catch (DocumentExistsException e) {
+                            // Document with the given ID already exists, skip insertion
+                            System.out.println("Document with ID " + documentCount + " already exists, skipping insertion.");
+                            success = true; // Mark as success to proceed to the next document
+                        }
+                    }
+
+                    if (!success) {
+                        System.out.println("Failed to insert data into the collection after " + maxRetries + " attempts.");
+                    }
+
+                    documentCount++;
+                }
+
+                float averageExecutionTime = totalExecutionTime / jsonArray.size();
+                csvWriter.append(String.valueOf(i + 1)).append(",").append(String.valueOf(averageExecutionTime)).append("\n");
+                System.out.println("Import " + (i + 1) + " completed.");
+
+                // Delete all documents after import
+                cluster.query("DELETE FROM `" + bucketName + "`");
+                System.out.println("Deleted all documents after import.");
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                cluster.disconnect();
             }
-
-            csvWriter.flush();
-            csvWriter.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
+
+        csvWriter.flush();
+        csvWriter.close();
+
+    } catch (Exception e) {
+        e.printStackTrace();
     }
+    }
+//    public static void main(String[] args) {
+//        String connectionString = "couchbase://127.0.0.1";
+//        String username = "test";
+//        String password = "password";
+//        String bucketName = "default";
+//        String collectionName = "_default";
+//        String jsonFilePath = "INSERT_DATA_COUCHBASE_1000.json";
+//        int importCount = 1000;
+//
+//        try {
+//            FileWriter csvWriter = new FileWriter("couchbase1_import_execution_time.csv");
+//            csvWriter.append("1000/Couchbase/Import\n");
+//
+//            for (int i = 0; i < importCount; i++) {
+//                long startTime = System.nanoTime();
+//                System.out.println("Starting import " + (i + 1) + "...");
+//                Cluster cluster = Cluster.connect(connectionString, username, password);
+//                Collection collection = cluster.bucket(bucketName).defaultCollection();
+//
+//                try (BufferedReader reader = new BufferedReader(new FileReader(jsonFilePath))) {
+//                    StringBuilder jsonContent = new StringBuilder();
+//                    String line;
+//                    while ((line = reader.readLine()) != null) {
+//                        jsonContent.append(line);
+//                    }
+//
+//                    JsonArray jsonArray = JsonArray.fromJson(jsonContent.toString());
+//
+//                    long totalExecutionTime = 0;
+//                    int documentCount = 0;
+//                    for (Object obj : jsonArray) {
+//                        JsonObject data = (JsonObject) obj;
+//
+//                        boolean success = false;
+//                        int retryCount = 0;
+//                        final int maxRetries = 10;
+//                        final int retryIntervalMillis = 1000;
+//
+//                        while (!success && retryCount < maxRetries) {
+//                            try {
+//                                long insertStartTime = System.nanoTime();
+//                                MutationResult result = collection.insert(String.valueOf(documentCount), data, InsertOptions.insertOptions());
+//                                long insertEndTime = System.nanoTime();
+//
+//                                float elapsedTimeMs = (float) (TimeUnit.NANOSECONDS.toMillis(insertEndTime - insertStartTime) / 1000.0);
+//                                totalExecutionTime += elapsedTimeMs;
+//                                success = true;
+//                            } catch (AmbiguousTimeoutException e) {
+//                                Thread.sleep(retryIntervalMillis);
+//                                retryCount++;
+//                            } catch (DocumentExistsException e) {
+//                                // Document with the given ID already exists, skip insertion
+//                                System.out.println("Document with ID " + documentCount + " already exists, skipping insertion.");
+//                                success = true; // Mark as success to proceed to the next document
+//                            }
+//                        }
+//
+//                        if (!success) {
+//                            System.out.println("Failed to insert data into the collection after " + maxRetries + " attempts.");
+//                        }
+//
+//                        documentCount++;
+//                    }
+//
+//                    float averageExecutionTime = totalExecutionTime / jsonArray.size();
+//                    //csvWriter.append(String.valueOf(i + 1)).append(",").append(String.valueOf(averageExecutionTime)).append("\n");
+//                    System.out.println("Import " + (i + 1) + " completed.");
+//
+//                    // Delete all documents after import
+//                    cluster.query("DELETE FROM `" + bucketName + "`");
+//                    System.out.println("Deleted all documents after import.");
+//
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                } finally {
+//                    cluster.disconnect();
+//                }
+//
+//                long endTime = System.nanoTime();
+//                float elapsedTimeMs = (float) (TimeUnit.NANOSECONDS.toMillis(endTime - startTime) / 1000.0);
+//                csvWriter.append(String.valueOf(i + 1)).append(",").append(String.valueOf(elapsedTimeMs)).append("\n");
+//            }
+//
+//            csvWriter.flush();
+//            csvWriter.close();
+//
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
 }

@@ -6,7 +6,7 @@ iterations = []
 jdbc_times = []
 
 # Read data from CSV file
-with open('jdbc_mD_Bnew2_execution_time_1000.csv', 'r') as file:
+with open('MariaDB_results/update_times.csv', 'r') as file:
     reader = csv.reader(file)
     next(reader)  # Skip header
     for row in reader:

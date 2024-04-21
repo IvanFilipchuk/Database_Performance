@@ -21,9 +21,10 @@ public class MariaDBApplication {
 
         try (Connection conn = DriverManager.getConnection(url, user, password);
              Statement stmt = conn.createStatement()) {
+            conn.setAutoCommit(false);
             System.out.println("Połączenie z bazą danych zostało pomyślnie ustanowione.");
             importTableStructure(stmt, "MariaDB_data/create_tables.sql");
-            System.out.println();
+            System.out.println("stworząne tabeli");
             FileWriter importWriter = new FileWriter("MariaDB_results/import_times.csv");
             FileWriter updateWriter = new FileWriter("MariaDB_results/update_times.csv");
             FileWriter deleteWriter = new FileWriter("MariaDB_results/delete_times.csv");
@@ -47,6 +48,7 @@ public class MariaDBApplication {
                 long importStartTime = System.nanoTime();
                 importData(stmt, "MariaDB_data/insert_1000_pilots.sql");
                 importData(stmt, "MariaDB_data/insert_1000_passengers.sql");
+                conn.commit();
                 long importEndTime = System.nanoTime();
                 float importElapsedTimeMs = (float) (TimeUnit.NANOSECONDS.toMillis(importEndTime - importStartTime)/1000.0);
                 importWriter.append(String.valueOf(i + 1)).append(",").append(String.valueOf(importElapsedTimeMs)).append("\n");
@@ -54,6 +56,7 @@ public class MariaDBApplication {
 
                 long updateStartTime = System.nanoTime();
                 updateDataFromCSV(conn, stmt, "MariaDB_data/pilots.csv");
+                conn.commit();
                 long updateEndTime = System.nanoTime();
                 float updateElapsedTimeMs = (float) (TimeUnit.NANOSECONDS.toMillis(updateEndTime - updateStartTime) / 1000.0);
                 updateWriter.append(String.valueOf(i + 1)).append(",").append(String.valueOf(updateElapsedTimeMs)).append("\n");
@@ -61,6 +64,7 @@ public class MariaDBApplication {
 
                 long select1StartTime = System.nanoTime();
                 executeSqlJdbc(stmt, "MariaDB_data/select1.sql");
+                conn.commit();
                 long select1EndTime = System.nanoTime();
                 float select1ElapsedTimeMs = (float) (TimeUnit.NANOSECONDS.toMillis(select1EndTime - select1StartTime)/1000.0);
                 select1Writer.append(String.valueOf(i + 1)).append(",").append(String.valueOf(select1ElapsedTimeMs)).append("\n");
@@ -69,6 +73,7 @@ public class MariaDBApplication {
 
                 long select2StartTime = System.nanoTime();
                 executeSqlJdbc(stmt, "MariaDB_data/select2.sql");
+                conn.commit();
                 long select2EndTime = System.nanoTime();
                 float select2ElapsedTimeMs = (float) (TimeUnit.NANOSECONDS.toMillis(select2EndTime - select2StartTime)/1000.0);
                 select2Writer.append(String.valueOf(i + 1)).append(",").append(String.valueOf(select2ElapsedTimeMs)).append("\n");
@@ -76,6 +81,7 @@ public class MariaDBApplication {
 
                 long select3StartTime = System.nanoTime();
                 executeSqlJdbc(stmt, "MariaDB_data/select3.sql");
+                conn.commit();
                 long select3EndTime = System.nanoTime();
                 float select3ElapsedTimeMs = (float) (TimeUnit.NANOSECONDS.toMillis(select3EndTime - select3StartTime)/1000.0);
                 select3Writer.append(String.valueOf(i + 1)).append(",").append(String.valueOf(select3ElapsedTimeMs)).append("\n");
@@ -83,6 +89,7 @@ public class MariaDBApplication {
 
                 long select4StartTime = System.nanoTime();
                 executeSqlJdbc(stmt, "MariaDB_data/select4.sql");
+                conn.commit();
                 long select4EndTime = System.nanoTime();
                 float select4ElapsedTimeMs = (float) (TimeUnit.NANOSECONDS.toMillis(select4EndTime - select4StartTime)/1000.0);
                 select4Writer.append(String.valueOf(i + 1)).append(",").append(String.valueOf(select4ElapsedTimeMs)).append("\n");
@@ -90,6 +97,7 @@ public class MariaDBApplication {
 
                 long select5StartTime = System.nanoTime();
                 executeSqlJdbc(stmt, "MariaDB_data/select5.sql");
+                conn.commit();
                 long select5EndTime = System.nanoTime();
                 float select5ElapsedTimeMs = (float) (TimeUnit.NANOSECONDS.toMillis(select5EndTime - select5StartTime)/1000.0);
                 select5Writer.append(String.valueOf(i + 1)).append(",").append(String.valueOf(select5ElapsedTimeMs)).append("\n");
@@ -97,6 +105,7 @@ public class MariaDBApplication {
 
                 long deleteStartTime = System.nanoTime();
                 executeSqlJdbc(stmt, "MariaDB_data/delete.sql");
+                conn.commit();
                 long deleteEndTime = System.nanoTime();
                 float deleteElapsedTimeMs = (float) (TimeUnit.NANOSECONDS.toMillis(deleteEndTime - deleteStartTime) / 1000.0);
                 deleteWriter.append(String.valueOf(i + 1)).append(",").append(String.valueOf(deleteElapsedTimeMs)).append("\n");
