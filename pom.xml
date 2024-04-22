@@ -57,8 +57,16 @@
             <artifactId>opencsv</artifactId>
             <version>5.5.1</version>
         </dependency>
-
-
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>3.7.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-csv</artifactId>
+            <version>1.9.0</version>
+        </dependency>
 
     </dependencies>
 
