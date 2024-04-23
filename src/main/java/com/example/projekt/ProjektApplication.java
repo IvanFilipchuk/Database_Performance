@@ -63,7 +63,6 @@ public class ProjektApplication {
     }
     public static void writeJdbcAverageTimeToCsv(String fileName, double averageElapsedTime) throws IOException {
         try (FileWriter writer = new FileWriter(fileName)) {
-            // Write the average JDBC execution time to the CSV file
             writer.append("Average JDBC Execution Time (milliseconds)\n");
             writer.append(String.valueOf(averageElapsedTime));
         }
@@ -75,7 +74,6 @@ public class ProjektApplication {
 
         try (Connection connection = DriverManager.getConnection(url, user, password)) {
             System.out.println("Connected to PostgreSQL database!");
-            // Read the SQL script from file
             StringBuilder sql = new StringBuilder();
             try (BufferedReader reader = new BufferedReader(new FileReader(sqlFile))) {
                 String line;
@@ -84,7 +82,6 @@ public class ProjektApplication {
                 }
             }
 
-            // Execute the SQL script
             try (Statement statement = connection.createStatement()) {
                 boolean result = statement.execute(sql.toString());
                 if (result) {
