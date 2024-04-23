@@ -6,7 +6,7 @@ iterations = []
 jdbc_times = []
 
 # Read data from CSV file
-with open('MariaDB_results/update_times.csv', 'r') as file:
+with open('MariaDB_results2/update_times.csv', 'r') as file:
     reader = csv.reader(file)
     next(reader)  # Skip header
     for row in reader:
@@ -14,7 +14,7 @@ with open('MariaDB_results/update_times.csv', 'r') as file:
         jdbc_times.append(float(row[1]))
 
 # Plot the data
-plt.plot(iterations, jdbc_times, marker='o', linestyle='-')
+plt.plot(iterations, jdbc_times, marker='o', linestyle='-', color='green')
 plt.xlabel('Iteration')
 plt.ylabel('JDBC Execution Time (seconds)')
 plt.title('JDBC Execution Time vs Iteration (1000)')
