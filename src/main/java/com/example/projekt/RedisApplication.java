@@ -13,7 +13,8 @@ import java.io.Reader;
 import java.util.*;
 import java.util.stream.Stream;
 
-public class RedisApplication {
+public class
+RedisApplication {
 
     public static void main(String[] args) throws IOException {
         Jedis jedis = new Jedis("localhost", 6379);
