@@ -45,7 +45,6 @@ public class RedisApplication {
                 long endTimeDelete = System.currentTimeMillis();
                 float totalTimeDelete = (float) ((endTimeDelete - startTimeDelete) / 1000.0);
                 writerDelete.append(String.valueOf(i + 1)).append(",").append(String.valueOf(totalTimeDelete)).append("\n");
-                System.out.println("done "+i);
             }
             Selects(jedis);
             Updates(jedis);
