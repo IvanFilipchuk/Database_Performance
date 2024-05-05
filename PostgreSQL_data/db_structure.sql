@@ -8,7 +8,7 @@ CREATE TABLE air_tickets (
                              id_airport_of_destination INT,
                              time_of_leave TIMESTAMP,
                              time_of_arrival TIMESTAMP,
-                             flight_time INTERVAL,
+                             flight_time VARCHAR(50),
                              price NUMERIC,
                              class_of_ticket VARCHAR(50)
 );
