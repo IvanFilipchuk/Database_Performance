@@ -18,8 +18,8 @@ public class RedisApplication {
     public static void main(String[] args) throws IOException {
         Jedis jedis = new Jedis("localhost", 6379);
         String csvFilePath = "Redis_data/redis_imports_1000.csv";
-        FileWriter writer = new FileWriter("charts/redis_import_time_1000.csv");
-        FileWriter writerDelete = new FileWriter("charts/redis_delete_time_1000.csv");
+        FileWriter writer = new FileWriter("charts/create/redis_import_time_1000.csv");
+        FileWriter writerDelete = new FileWriter("charts/delete/redis_delete_time_1000.csv");
         writer.append("10000/Redis/Import\n");
 
         try {
@@ -59,7 +59,7 @@ public class RedisApplication {
 
     }
     public static void Updates(Jedis jedis) throws IOException{
-        FileWriter writer = new FileWriter("charts/redis_update1_time_1000.csv");
+        FileWriter writer = new FileWriter("charts/update/redis_update1_time_1000.csv");
         for (int i=0; i<1000;i++)
         {
             String csvFilePath = "Redis_data/redis_imports_1000.csv";
@@ -88,7 +88,7 @@ public class RedisApplication {
         }
         writer.close();
 
-        FileWriter writer2 = new FileWriter("charts/redis_update2_time_1000.csv");
+        FileWriter writer2 = new FileWriter("charts/update/redis_update2_time_1000.csv");
         for (int i=0; i<1000;i++)
         {
             String csvFilePath = "Redis_data/redis_imports_1000.csv";
@@ -137,7 +137,7 @@ public class RedisApplication {
         reader.close();
 
 
-        FileWriter writer = new FileWriter("charts/redis_select1_time_1000.csv");
+        FileWriter writer = new FileWriter("charts/read/redis_select1_time_1000.csv");
         for (int i=0; i<1000;i++)
         {
             long startTime = System.currentTimeMillis();
@@ -148,7 +148,7 @@ public class RedisApplication {
 
         }
         writer.close();
-        FileWriter writer2 = new FileWriter("charts/redis_select2_time_1000.csv");
+        FileWriter writer2 = new FileWriter("charts/read/redis_select2_time_1000.csv");
         for (int i=0; i<1000;i++)
         {
             long startTime = System.currentTimeMillis();
@@ -166,7 +166,7 @@ public class RedisApplication {
         }
         writer2.close();
 
-        FileWriter writer3 = new FileWriter("charts/redis_select3_time_1000.csv");
+        FileWriter writer3 = new FileWriter("charts/read/redis_select3_time_1000.csv");
         for (int i=0; i<1000;i++)
         {
             long startTime = System.currentTimeMillis();

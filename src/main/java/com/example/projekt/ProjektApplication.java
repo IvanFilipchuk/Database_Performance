@@ -24,7 +24,9 @@ public class ProjektApplication {
 
     public static void main(String[] args) {
         try {
-            FileWriter writer = new FileWriter("charts/jdbc_execution_time_1000.csv");
+            FileWriter writer = new FileWriter("charts/create/postgresql_import_time_1000.csv");
+            FileWriter writerDelete1000 = new FileWriter("charts/delete/postgresql_delete_time_1000.csv");
+
             writer.append("1000/PostgreSQL/Import\n");
             executeSqlJdbc("PostgreSQL_data/db_structure.sql");
             for (int i = 0; i < 1000; i++) {
@@ -33,8 +35,12 @@ public class ProjektApplication {
                 long jdbcEndTime = System.nanoTime();
                 float jdbcElapsedTime = (float) (TimeUnit.NANOSECONDS.toMillis(jdbcEndTime - jdbcStartTime)/1000.0);
                 writer.append(String.valueOf(i + 1)).append(",").append(String.valueOf(jdbcElapsedTime)).append("\n");
-
+                long startTimeDelete = System.currentTimeMillis();
                 executeSqlJdbc("PostgreSQL_data/delete_data.sql");
+                long endTimeDelete = System.currentTimeMillis();
+                float totalTimeDelete = (float) ((endTimeDelete - startTimeDelete) / 1000.0);
+                writerDelete1000.append(String.valueOf(i + 1)).append(",").append(String.valueOf(totalTimeDelete)).append("\n");
+
             }
             writer.flush();
             writer.close();
@@ -42,17 +48,21 @@ public class ProjektApplication {
             e.printStackTrace();
         }
         try {
-            FileWriter writer = new FileWriter("charts/jdbc_execution_time_10000.csv");
+            FileWriter writer = new FileWriter("charts/create/postgresql_import_time_10000.csv");
+            FileWriter writerDelete10000 = new FileWriter("charts/delete/postgresql_delete_time_10000.csv");
             writer.append("10000/PostgreSQL/Import\n");
-
             for (int i = 0; i < 1000; i++) {
                 long jdbcStartTime = System.nanoTime();
                 executeSqlJdbc("PostgreSQL_data/imports_10000.sql");
                 long jdbcEndTime = System.nanoTime();
                 float jdbcElapsedTime = (float) (TimeUnit.NANOSECONDS.toMillis(jdbcEndTime - jdbcStartTime)/1000.0);
                 writer.append(String.valueOf(i + 1)).append(",").append(String.valueOf(jdbcElapsedTime)).append("\n");
-
+                long startTimeDelete = System.currentTimeMillis();
                 executeSqlJdbc("PostgreSQL_data/delete_data.sql");
+                long endTimeDelete = System.currentTimeMillis();
+                float totalTimeDelete = (float) ((endTimeDelete - startTimeDelete) / 1000.0);
+                writerDelete10000.append(String.valueOf(i + 1)).append(",").append(String.valueOf(totalTimeDelete)).append("\n");
+
             }
             writer.flush();
             writer.close();
