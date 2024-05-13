@@ -1,1 +1,1 @@
-SELECT pilots.*, COUNT(passengers.id) AS passenger_count FROM pilots LEFT JOIN passengers ON pilots.id = passengers.pilots_id GROUP BY pilots.id;
+SELECT id, first_name, last_name, rating FROM passengers WHERE rating > 4 GROUP BY id;

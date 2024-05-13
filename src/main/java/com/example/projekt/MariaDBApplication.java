@@ -25,25 +25,26 @@ public class MariaDBApplication {
             System.out.println("Połączenie z bazą danych zostało pomyślnie ustanowione.");
             importTableStructure(stmt, "MariaDB_data/create_tables.sql");
             System.out.println("stworząne tabeli");
-            FileWriter importWriter = new FileWriter("MariaDB_results/import_times.csv");
-            FileWriter updateWriter = new FileWriter("MariaDB_results/update_times.csv");
-            FileWriter deleteWriter = new FileWriter("MariaDB_results/delete_times.csv");
-            FileWriter select1Writer = new FileWriter("MariaDB_results/select_1_times.csv");
-            FileWriter select2Writer = new FileWriter("MariaDB_results/select_2_times.csv");
-            FileWriter select3Writer = new FileWriter("MariaDB_results/select_3_times.csv");
-            FileWriter select4Writer = new FileWriter("MariaDB_results/select_4_times.csv");
-            FileWriter select5Writer = new FileWriter("MariaDB_results/select_5_times.csv");
+            FileWriter importWriter = new FileWriter("charts/create/mariadb_import_time_100.csv");
+            FileWriter updateWriter1 = new FileWriter("charts/update/mariadb_update1_time_100.csv");
+            FileWriter updateWriter2 = new FileWriter("charts/update/mariadb_update2_time_100.csv");
+            FileWriter deleteWriter = new FileWriter("charts/delete/mariadb_delete_time_100.csv");
+
+            FileWriter select1Writer = new FileWriter("charts/read/mariadb_select1_time_100.csv");
+            FileWriter select2Writer = new FileWriter("charts/read/mariadb_select2_time_100.csv");
+            FileWriter select3Writer = new FileWriter("charts/read/mariadb_select3_time_100.csv");
+
             importWriter.append("Iteration,Time (s)\n");
             deleteWriter.append("Iteration,Time (s)\n");
-            updateWriter.append("Iteration,Time (s)\n");
+            updateWriter1.append("Iteration,Time (s)\n");
+            updateWriter2.append("Iteration,Time (s)\n");
             select1Writer.append("Iteration,Time (s)\n");
             select2Writer.append("Iteration,Time (s)\n");
             select3Writer.append("Iteration,Time (s)\n");
-            select4Writer.append("Iteration,Time (s)\n");
-            select5Writer.append("Iteration,Time (s)\n");
 
 
-            for (int i = 0; i < 10; i++) {
+
+            for (int i = 0; i < 1000; i++) {
                 System.out.println(i);
                 long importStartTime = System.nanoTime();
 //                importData(stmt, "MariaDB_data/insert_1000_pilots.sql");
@@ -51,26 +52,34 @@ public class MariaDBApplication {
 //                importData(conn,"MariaDB_data/insert_1000_pilots.sql" );
 //                importData(conn,"MariaDB_data/insert_1000_passengers.sql");
                 //conn.commit();
-                importPilotsData(conn, "MariaDB_data/insert_1000_pilots.csv");
-                System.out.println("insert 1000 pilots");
-                importPassengersData(conn,"MariaDB_data/insert_1000_passengers.csv");
-                System.out.println("insert 1000 passangers");
+
+                importPilotsData(conn, "MariaDB_data/insert_100_pilots.csv");
+                System.out.println("insert 100 pilots");
                 long importEndTime = System.nanoTime();
                 float importElapsedTimeMs = (float) (TimeUnit.NANOSECONDS.toMillis(importEndTime - importStartTime) / 1000.0);
                 importWriter.append(String.valueOf(i + 1)).append(",").append(String.valueOf(importElapsedTimeMs)).append("\n");
+                importPassengersData(conn,"MariaDB_data/insert_100_passengers.csv");
+                System.out.println("insert 100 passangers");
                 System.out.println("dane zaimportowane ");
 
                 long updateStartTime = System.nanoTime();
-                updateDataFromCSV(conn, stmt, "MariaDB_data/pilots.csv");
-                //conn.commit();
+                updateDataFromCSV(conn, stmt, "MariaDB_data/update_100_pilots.csv");
                 long updateEndTime = System.nanoTime();
                 float updateElapsedTimeMs = (float) (TimeUnit.NANOSECONDS.toMillis(updateEndTime - updateStartTime) / 1000.0);
-                updateWriter.append(String.valueOf(i + 1)).append(",").append(String.valueOf(updateElapsedTimeMs)).append("\n");
-                System.out.println("dane zaktualizowane");
+                updateWriter1.append(String.valueOf(i + 1)).append(",").append(String.valueOf(updateElapsedTimeMs)).append("\n");
+                System.out.println("dane 1 zaktualizowane");
+
+
+                long update2StartTime = System.nanoTime();
+                updatePassengerDataFromCSV(conn, stmt, "MariaDB_data/update_100_passengers.csv");
+                long update2EndTime = System.nanoTime();
+                float update2ElapsedTimeMs = (float) (TimeUnit.NANOSECONDS.toMillis(update2EndTime - update2StartTime) / 1000.0);
+                updateWriter2.append(String.valueOf(i + 1)).append(",").append(String.valueOf(update2ElapsedTimeMs)).append("\n");
+                System.out.println("dane 2 zaktualizowane");
 
                 long select1StartTime = System.nanoTime();
                 executeSqlJdbc(stmt, "MariaDB_data/select1.sql");
-               // conn.commit();
+                conn.commit();
                 long select1EndTime = System.nanoTime();
                 float select1ElapsedTimeMs = (float) (TimeUnit.NANOSECONDS.toMillis(select1EndTime - select1StartTime) / 1000.0);
                 select1Writer.append(String.valueOf(i + 1)).append(",").append(String.valueOf(select1ElapsedTimeMs)).append("\n");
@@ -79,7 +88,7 @@ public class MariaDBApplication {
 
                 long select2StartTime = System.nanoTime();
                 executeSqlJdbc(stmt, "MariaDB_data/select2.sql");
-               // conn.commit();
+                conn.commit();
                 long select2EndTime = System.nanoTime();
                 float select2ElapsedTimeMs = (float) (TimeUnit.NANOSECONDS.toMillis(select2EndTime - select2StartTime) / 1000.0);
                 select2Writer.append(String.valueOf(i + 1)).append(",").append(String.valueOf(select2ElapsedTimeMs)).append("\n");
@@ -87,27 +96,11 @@ public class MariaDBApplication {
 
                 long select3StartTime = System.nanoTime();
                 executeSqlJdbc(stmt, "MariaDB_data/select3.sql");
-                //conn.commit();
+                conn.commit();
                 long select3EndTime = System.nanoTime();
                 float select3ElapsedTimeMs = (float) (TimeUnit.NANOSECONDS.toMillis(select3EndTime - select3StartTime) / 1000.0);
                 select3Writer.append(String.valueOf(i + 1)).append(",").append(String.valueOf(select3ElapsedTimeMs)).append("\n");
                 System.out.println("select3");
-
-                long select4StartTime = System.nanoTime();
-                executeSqlJdbc(stmt, "MariaDB_data/select4.sql");
-                //conn.commit();
-                long select4EndTime = System.nanoTime();
-                float select4ElapsedTimeMs = (float) (TimeUnit.NANOSECONDS.toMillis(select4EndTime - select4StartTime) / 1000.0);
-                select4Writer.append(String.valueOf(i + 1)).append(",").append(String.valueOf(select4ElapsedTimeMs)).append("\n");
-                System.out.println("select4");
-
-                long select5StartTime = System.nanoTime();
-                executeSqlJdbc(stmt, "MariaDB_data/select5.sql");
-              //  conn.commit();
-                long select5EndTime = System.nanoTime();
-                float select5ElapsedTimeMs = (float) (TimeUnit.NANOSECONDS.toMillis(select5EndTime - select5StartTime) / 1000.0);
-                select5Writer.append(String.valueOf(i + 1)).append(",").append(String.valueOf(select5ElapsedTimeMs)).append("\n");
-                System.out.println("select5");
 
                 long deleteStartTime = System.nanoTime();
                 conn.setAutoCommit(false);
@@ -118,15 +111,16 @@ public class MariaDBApplication {
                 deleteWriter.append(String.valueOf(i + 1)).append(",").append(String.valueOf(deleteElapsedTimeMs)).append("\n");
                 System.out.println("dane usuniente");
                 System.out.println();
-
-
             }
 
             importWriter.flush();
             importWriter.close();
 
-            updateWriter.flush();
-            updateWriter.close();
+            updateWriter1.flush();
+            updateWriter1.close();
+
+            updateWriter2.flush();
+            updateWriter2.close();
 
             select1Writer.flush();
             select1Writer.close();
@@ -136,12 +130,6 @@ public class MariaDBApplication {
 
             select3Writer.flush();
             select3Writer.close();
-
-            select4Writer.flush();
-            select4Writer.close();
-
-            select5Writer.flush();
-            select5Writer.close();
 
             deleteWriter.flush();
             deleteWriter.close();
@@ -258,6 +246,41 @@ public class MariaDBApplication {
             e.printStackTrace();
         }
     }
+
+    private static void updatePassengerDataFromCSV(Connection conn, Statement stmt, String filePath) throws IOException, SQLException {
+        String updateQuery = "UPDATE passengers SET first_name = ?, last_name = ?, email = ?, gender = ?, rating = ?, pilots_id = ? WHERE id = ? AND rating > 5";
+        try (CSVReader reader = new CSVReader(new FileReader(filePath))) {
+            String[] headers = reader.readNext();
+            conn.setAutoCommit(false);
+            try (PreparedStatement pstmt = conn.prepareStatement(updateQuery)) {
+                String line[];
+                while ((line = reader.readNext()) != null) {
+                    int id = Integer.parseInt(line[0]);
+                    String firstName = line[1].trim();
+                    String lastName = line[2].trim();
+                    String email = line[3].trim();
+                    String gender = line[4].trim();
+                    float rating = Float.parseFloat(line[5]);
+                    int pilotsId = Integer.parseInt(line[6]);
+
+                    pstmt.setString(1, firstName);
+                    pstmt.setString(2, lastName);
+                    pstmt.setString(3, email);
+                    pstmt.setString(4, gender);
+                    pstmt.setFloat(5, rating);
+                    pstmt.setInt(6, pilotsId);
+                    pstmt.setInt(7, id);
+                    pstmt.addBatch();
+                }
+                pstmt.executeBatch();
+                conn.commit();
+            }
+        } catch (CsvValidationException e) {
+            System.err.println("Błąd podczas walidacji pliku CSV:");
+            e.printStackTrace();
+        }
+    }
+
     private static void importData(Connection conn, String filePath) throws IOException, SQLException {
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             conn.setAutoCommit(false);

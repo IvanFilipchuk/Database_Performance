@@ -40,21 +40,28 @@ public class CouchbaseApplication {
         Collection collection = cluster.bucket(bucketName).defaultCollection();
 
         FileWriter importWriter = null;
-        FileWriter updateWriter = null;
+        FileWriter updateWriter1 = null;
+        FileWriter updateWriter2 = null;
         FileWriter deleteWriter = null;
         FileWriter[] selectWriters = new FileWriter[5];
 
+        int liczbaDanych = 10000;
+
+
         try {
-            importWriter = new FileWriter("Couchbase_results/import_times.csv");
-            updateWriter = new FileWriter("Couchbase_results/update_times.csv");
-            deleteWriter = new FileWriter("Couchbase_results/delete_times.csv");
-            for (int i = 0; i < 5; i++) {
-                selectWriters[i] = new FileWriter("Couchbase_results/select_query" + (i + 1) + "_times.csv");
+            importWriter = new FileWriter("charts/create/couchbase_import_time_"+liczbaDanych+".csv");
+            updateWriter1 = new FileWriter("charts/update/couchbase_update1_time_"+liczbaDanych +".csv");
+            updateWriter2 = new FileWriter("charts/update/couchbase_update2_time_"+liczbaDanych +".csv");
+            deleteWriter = new FileWriter("charts/delete/couchbase_delete_time_"+liczbaDanych +".csv");
+            for (int i = 0; i < 3; i++) {
+                selectWriters[i] = new FileWriter("charts/read/couchbase_select" + (i + 1) + "_time_"+liczbaDanych +".csv");
             }
 
             importWriter.append("Iteration,Time (s)\n");
-            updateWriter.append("Iteration,Time (s)\n");
-            for (int i = 0; i < 5; i++) {
+            updateWriter1.append("Iteration,Time (s)\n");
+            updateWriter2.append("Iteration,Time (s)\n");
+
+            for (int i = 0; i < 3; i++) {
                 selectWriters[i].append("Iteration,Time (ms)\n");
             }
             deleteWriter.append("Iteration,Time (s)\n");
@@ -62,7 +69,7 @@ public class CouchbaseApplication {
             for (int i = 0; i < 1000; i++) {
                 System.out.println("Iteration: " + (i + 1));
 
-                File jsonFile = new File("Couchbase/insert_1000.json");
+                File jsonFile = new File("Couchbase/insert_"+liczbaDanych +".json");
                 long importStartTime = System.nanoTime();
                 importJsonData(collection, jsonFile).join();
                 long importEndTime = System.nanoTime();
@@ -70,24 +77,33 @@ public class CouchbaseApplication {
                 importWriter.append(String.valueOf(i + 1)).append(",").append(String.valueOf(importElapsedTimeMs)).append("\n");
                 System.out.println("zaimportowano");
 
-                File jsonFileUpdate = new File("Couchbase/update_1000.json");
+                File jsonFileUpdate = new File("Couchbase/update1_"+liczbaDanych +".json");
                 long updateStartTime = System.nanoTime();
                 updateJsonData(collection, jsonFileUpdate).join();
                 long updateEndTime = System.nanoTime();
                 float updateElapsedTimeMs = (float) (TimeUnit.NANOSECONDS.toMillis(updateEndTime - updateStartTime) / 1000.0);
-                updateWriter.append(String.valueOf(i + 1)).append(",").append(String.valueOf(updateElapsedTimeMs)).append("\n");
+                updateWriter1.append(String.valueOf(i + 1)).append(",").append(String.valueOf(updateElapsedTimeMs)).append("\n");
                 System.out.println("zaktualizowano");
 
-                executeAndLogSelectQuery(cluster, selectWriters[0], i + 1, "SELECT ID, Model, Max_Speed FROM `default` WHERE Type = \"Fighter\" AND Max_Speed > 1500");
+
+                File jsonFileUpdate2 = new File("Couchbase/update2_"+liczbaDanych +".json");
+                long updateStartTime2 = System.nanoTime();
+                updatePassengerJsonData(collection, jsonFileUpdate2).join();
+                long updateEndTime2 = System.nanoTime();
+                float updateElapsedTimeMs2 = (float) (TimeUnit.NANOSECONDS.toMillis(updateEndTime2 - updateStartTime2) / 1000.0);
+                updateWriter2.append(String.valueOf(i + 1)).append(",").append(String.valueOf(updateElapsedTimeMs2)).append("\n");
+                System.out.println("zaktualizowano 2 ");
+
+                executeAndLogSelectQuery(cluster, selectWriters[0], i + 1, "SELECT ID, Model FROM `default` WHERE Production_Year > 2000");
                 System.out.println("SELECT 1");
                 executeAndLogSelectQuery(cluster, selectWriters[1], i + 1, "SELECT ID, Model FROM `default` WHERE Manufacturer = \"Lockheed Martin\"");
                 System.out.println("SELECT 2");
-                executeAndLogSelectQuery(cluster, selectWriters[2], i + 1, "SELECT ID, Model FROM `default` WHERE Max_Payload IS NULL");
+                executeAndLogSelectQuery(cluster, selectWriters[2], i + 1, "SELECT ID, Model, Max_Speed FROM `default` WHERE Type = \"Fighter\" AND Max_Speed > 1500");
                 System.out.println("SELECT 3");
-                executeAndLogSelectQuery(cluster, selectWriters[3], i + 1, "SELECT ID, Model FROM `default` WHERE Max_Takeoff_Weight > 70000");
-                System.out.println("SELECT 4");
-                executeAndLogSelectQuery(cluster, selectWriters[4], i + 1, "SELECT ID, Model FROM `default` WHERE Production_Year > 2000");
-                System.out.println("SELECT 5");
+//                executeAndLogSelectQuery(cluster, selectWriters[3], i + 1, "SELECT ID, Model FROM `default` WHERE Max_Takeoff_Weight > 70000");
+//                System.out.println("SELECT 4");
+//                executeAndLogSelectQuery(cluster, selectWriters[4], i + 1, "SELECT ID, Model FROM `default` WHERE Max_Payload IS NULL");
+//                System.out.println("SELECT 5");
 
                 long deleteStartTime = System.nanoTime();
                 deleteAllData(collection, cluster).join();
@@ -104,7 +120,8 @@ public class CouchbaseApplication {
         } finally {
             try {
                 if (importWriter != null) importWriter.close();
-                if (updateWriter != null) updateWriter.close();
+                if (updateWriter1 != null) updateWriter1.close();
+                if (updateWriter2 != null) updateWriter2.close();
                 for (FileWriter writer : selectWriters) {
                     if (writer != null) writer.close();
                 }
@@ -167,6 +184,35 @@ public class CouchbaseApplication {
         return CompletableFuture.completedFuture(null);
     }
 
+
+    private static CompletableFuture<Void> updatePassengerJsonData(Collection collection, File jsonFile) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode rootNode = objectMapper.readTree(jsonFile);
+            if (rootNode.isArray()) {
+                AsyncCollection asyncCollection = collection.async();
+                List<CompletableFuture<MutationResult>> futures = new ArrayList<>();
+                Iterator<JsonNode> iterator = rootNode.iterator();
+                while (iterator.hasNext()) {
+                    JsonNode node = iterator.next();
+                    JsonObject jsonObject = JsonObject.fromJson(node.toString());
+                    if (jsonObject.getString("Type").equals("Passenger")) {
+                        String id = String.valueOf(jsonObject.getInt("ID"));
+                        CompletableFuture<MutationResult> future = asyncCollection.replace(id, jsonObject);
+                        futures.add(future);
+                    }
+                }
+                CompletableFuture<Void>[] voidFutures = futures.toArray(new CompletableFuture[0]);
+                return CompletableFuture.allOf(voidFutures);
+            } else {
+                System.out.println("Plik JSON nie zawiera tablicy obiektów.");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return CompletableFuture.completedFuture(null);
+    }
+
     private static CompletableFuture<Void> deleteAllData(Collection collection, Cluster cluster) {
         String query = "DELETE FROM `" + collection.bucketName() + "`";
 
@@ -183,7 +229,6 @@ public class CouchbaseApplication {
             }
         });
     }
-
     private static void executeAndLogSelectQuery(Cluster cluster, FileWriter writer, int iteration, String query) throws IOException {
         long startTime = System.nanoTime();
         QueryResult result = cluster.async().query(query).join();
