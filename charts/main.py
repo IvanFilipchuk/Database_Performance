@@ -7,7 +7,7 @@ def read_csv_files(directory):
     data = {}
     for root, _, files in os.walk(directory):
         for file in files:
-            if file.endswith('.csv'):
+            if file.endswith('100.csv'):
                 db, operation, _, count = file.split('_')
                 key = f"{db}_{operation}"
                 filepath = os.path.join(root, file)
@@ -16,40 +16,42 @@ def read_csv_files(directory):
                     data[key] = []
                 data[key].append(df)
     return data
+
 def plot_data(data, num_records):
     operations = ['import', 'select1', 'select2', 'select3', 'update1', 'update2', 'delete']
-    databases = ['couchbase','mariadb','postgresql', 'redis']
+    databases = ['couchbase', 'mariadb', 'postgresql', 'redis']
     colors = ['r', 'g', 'b', 'y']
     for op in operations:
         plt.figure(figsize=(10, 6))
-        plotted_labels = set()
+        min_time, max_time = float('inf'), float('-inf')
         for db, color in zip(databases, colors):
             key = f"{db}_{op}"
             if key in data:
                 df_list = data[key]
                 for df in df_list:
-                    label = db if db not in plotted_labels else ""
-                    plt.plot(df['index'][:num_records], df['time'][:num_records], color=color, label=label)
-                    plotted_labels.add(db)
+                    sorted_df = df.sort_values(by='index')
+                    sorted_df['time'] = pd.to_numeric(sorted_df['time'], errors='coerce')
+                    plt.plot(sorted_df['index'][:num_records], sorted_df['time'][:num_records], color=color, label=db)
+                    min_time = min(min_time, sorted_df['time'].min(skipna=True))
+                    max_time = max(max_time, sorted_df['time'].max(skipna=True))
+
         plt.title(f'{op.capitalize()} Operation Performance')
         plt.xlabel('Records')
         plt.ylabel('Time (s)')
         plt.legend(loc='best')
         plt.grid(True)
         ax = plt.gca()
-        ax.yaxis.set_major_locator(MaxNLocator(integer=True, prune='both'))
-        ax.xaxis.set_major_locator(MaxNLocator(integer=True, prune='both'))
+        ax.xaxis.set_major_locator(MaxNLocator(nbins=10))
+        ax.yaxis.set_major_locator(MaxNLocator(nbins=10))
+        ax.set_ylim(min_time, max_time)
         plt.show()
 
-def main(num_records):
-    directories = ['create', 'read', 'update', 'delete']
-    all_data = {}
+num_records = 10000
 
-    for directory in directories:
-        data = read_csv_files(directory)
-        all_data.update(data)
+directories = ['create', 'read', 'update', 'delete']
+all_data = {}
+for directory in directories:
+    data = read_csv_files(directory)
+    all_data.update(data)
+plot_data(all_data, num_records)
 
-    plot_data(all_data, num_records)
-if __name__ == "__main__":
-    num_records = 100
-    main(num_records)
