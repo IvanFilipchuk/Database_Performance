@@ -46,7 +46,7 @@ def plot_data(data, num_records):
         ax.set_ylim(min_time, max_time)
         plt.show()
 
-num_records = 1000
+num_records = 10000
 
 directories = ['create', 'read', 'update', 'delete']
 all_data = {}
