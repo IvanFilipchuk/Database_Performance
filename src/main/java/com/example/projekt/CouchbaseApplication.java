@@ -45,28 +45,28 @@ public class CouchbaseApplication {
         FileWriter deleteWriter = null;
         FileWriter[] selectWriters = new FileWriter[5];
 
-        int liczbaDanych = 10000;
+        int liczbaDanych = 100;
 
 
         try {
-            importWriter = new FileWriter("charts/create/couchbase_import_time_"+liczbaDanych+".csv");
-            updateWriter1 = new FileWriter("charts/update/couchbase_update1_time_"+liczbaDanych +".csv");
-            updateWriter2 = new FileWriter("charts/update/couchbase_update2_time_"+liczbaDanych +".csv");
-            deleteWriter = new FileWriter("charts/delete/couchbase_delete_time_"+liczbaDanych +".csv");
+            importWriter = new FileWriter("charts/create/couchbase_new_import_time_"+liczbaDanych+".csv");
+            updateWriter1 = new FileWriter("charts/update/couchbase_new_update1_time_"+liczbaDanych +".csv");
+            updateWriter2 = new FileWriter("charts/update/couchbase_new_update2_time_"+liczbaDanych +".csv");
+            deleteWriter = new FileWriter("charts/delete/couchbase_new_delete_time_"+liczbaDanych +".csv");
             for (int i = 0; i < 3; i++) {
-                selectWriters[i] = new FileWriter("charts/read/couchbase_select" + (i + 1) + "_time_"+liczbaDanych +".csv");
+                selectWriters[i] = new FileWriter("charts/read/couchbase_new_select" + (i + 1) + "_time_"+liczbaDanych +".csv");
             }
 
             importWriter.append("Iteration,Time (s)\n");
             updateWriter1.append("Iteration,Time (s)\n");
             updateWriter2.append("Iteration,Time (s)\n");
 
-            for (int i = 0; i < 3; i++) {
-                selectWriters[i].append("Iteration,Time (ms)\n");
-            }
+//            for (int i = 0; i < 3; i++) {
+//                selectWriters[i].append("Iteration,Time (ms)\n");
+//            }
             deleteWriter.append("Iteration,Time (s)\n");
 
-            for (int i = 0; i < 1000; i++) {
+            for (int i = 0; i < 10; i++) {
                 System.out.println("Iteration: " + (i + 1));
 
                 File jsonFile = new File("Couchbase/insert_"+liczbaDanych +".json");
@@ -213,15 +213,30 @@ public class CouchbaseApplication {
         return CompletableFuture.completedFuture(null);
     }
 
+//    private static CompletableFuture<Void> deleteAllData(Collection collection, Cluster cluster) {
+//        String query = "DELETE FROM `" + collection.bucketName() + "`";
+//
+//        return CompletableFuture.supplyAsync(() -> {
+//            try {
+//                QueryResult queryResult = cluster.async().query(query).join();
+//                if (queryResult.metaData().status() == QueryStatus.SUCCESS) {
+//                    return null;
+//                } else {
+//                    throw new CouchbaseException("Wystąpił błąd podczas usuwania danych.");
+//                }
+//            } catch (CouchbaseException ex) {
+//                throw new RuntimeException(ex);
+//            }
+//        });
+//    }
+
     private static CompletableFuture<Void> deleteAllData(Collection collection, Cluster cluster) {
         String query = "DELETE FROM `" + collection.bucketName() + "`";
 
-        return CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.runAsync(() -> {
             try {
-                QueryResult queryResult = cluster.async().query(query).join();
-                if (queryResult.metaData().status() == QueryStatus.SUCCESS) {
-                    return null;
-                } else {
+                QueryResult queryResult = cluster.query(query, QueryOptions.queryOptions().scanConsistency(QueryScanConsistency.REQUEST_PLUS));
+                if (queryResult.metaData().status() != QueryStatus.SUCCESS) {
                     throw new CouchbaseException("Wystąpił błąd podczas usuwania danych.");
                 }
             } catch (CouchbaseException ex) {
@@ -229,11 +244,18 @@ public class CouchbaseApplication {
             }
         });
     }
-    private static void executeAndLogSelectQuery(Cluster cluster, FileWriter writer, int iteration, String query) throws IOException {
-        long startTime = System.nanoTime();
-        QueryResult result = cluster.async().query(query).join();
-        long endTime = System.nanoTime();
-        float elapsedTimeMs = (float) (TimeUnit.NANOSECONDS.toMillis(endTime - startTime)/1000.0);
-        writer.append(iteration + "," + elapsedTimeMs + "\n");
-    }
+//    private static void executeAndLogSelectQuery(Cluster cluster, FileWriter writer, int iteration, String query) throws IOException {
+//        long startTime = System.nanoTime();
+//        QueryResult result = cluster.async().query(query).join();
+//        long endTime = System.nanoTime();
+//        float elapsedTimeMs = (float) (TimeUnit.NANOSECONDS.toMillis(endTime - startTime)/1000.0);
+//        writer.append(iteration + "," + elapsedTimeMs + "\n");
+//    }
+private static void executeAndLogSelectQuery(Cluster cluster, FileWriter writer, int iteration, String query) throws IOException {
+    long startTime = System.nanoTime();
+    QueryResult result = cluster.query(query, QueryOptions.queryOptions().scanConsistency(QueryScanConsistency.REQUEST_PLUS));
+    long endTime = System.nanoTime();
+    float elapsedTimeMs = (float) (TimeUnit.NANOSECONDS.toMillis(endTime - startTime) / 1000.0);
+    writer.append(iteration + "," + elapsedTimeMs + "\n");
+}
 }

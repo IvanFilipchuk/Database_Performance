@@ -1,0 +1,1 @@
+UPDATE air_tickets SET price = price * 1.1 WHERE class_of_ticket = 'first class';

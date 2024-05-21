@@ -1,1 +1,0 @@
-SELECT gender, COUNT(*) AS pilot_count FROM pilots WHERE pilot_rating = 5 AND years_practice >= 5 GROUP BY gender;
