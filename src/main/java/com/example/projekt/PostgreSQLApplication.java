@@ -38,8 +38,6 @@ public class PostgreSQLApplication {
             FileWriter writerDelete = new FileWriter("charts/delete/postgresql_delete_time_" + numberOfRecords + ".csv");
 
             for (int i = 0; i < 10; i++) {
-                System.out.println("Test");
-                System.out.println("Test");
                 float totalImportTime = 0;
                 totalImportTime += executeSqlJdbc(connection, "PostgreSQL_data/imports.sql",numberOfRecords);
                 totalImportTime += executeSqlJdbc(connection, "PostgreSQL_data/imports2.sql",numberOfRecords);

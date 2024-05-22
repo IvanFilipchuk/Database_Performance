@@ -1,6 +1,5 @@
 package com.example.projekt;
 
-
 import com.couchbase.client.core.error.CouchbaseException;
 import com.couchbase.client.java.AsyncCollection;
 import com.couchbase.client.java.Cluster;
@@ -45,65 +44,44 @@ public class CouchbaseApplication {
         FileWriter deleteWriter = null;
         FileWriter[] selectWriters = new FileWriter[5];
 
-        int liczbaDanych = 100;
+        int liczbaDanych = 10000;
 
 
         try {
-            importWriter = new FileWriter("charts/create/couchbase_new_import_time_"+liczbaDanych+".csv");
-            updateWriter1 = new FileWriter("charts/update/couchbase_new_update1_time_"+liczbaDanych +".csv");
-            updateWriter2 = new FileWriter("charts/update/couchbase_new_update2_time_"+liczbaDanych +".csv");
-            deleteWriter = new FileWriter("charts/delete/couchbase_new_delete_time_"+liczbaDanych +".csv");
+            importWriter = new FileWriter("charts/create/couchbase_import_time_"+liczbaDanych+".csv");
+            updateWriter1 = new FileWriter("charts/update/couchbase_update1_time_"+liczbaDanych +".csv");
+            updateWriter2 = new FileWriter("charts/update/couchbase_update2_time_"+liczbaDanych +".csv");
+            deleteWriter = new FileWriter("charts/delete/couchbase_delete_time_"+liczbaDanych +".csv");
             for (int i = 0; i < 3; i++) {
                 selectWriters[i] = new FileWriter("charts/read/couchbase_new_select" + (i + 1) + "_time_"+liczbaDanych +".csv");
             }
 
-            importWriter.append("Iteration,Time (s)\n");
-            updateWriter1.append("Iteration,Time (s)\n");
-            updateWriter2.append("Iteration,Time (s)\n");
 
-//            for (int i = 0; i < 3; i++) {
-//                selectWriters[i].append("Iteration,Time (ms)\n");
-//            }
-            deleteWriter.append("Iteration,Time (s)\n");
-
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < 1000; i++) {
                 System.out.println("Iteration: " + (i + 1));
 
-                File jsonFile = new File("Couchbase/insert_"+liczbaDanych +".json");
+                File jsonFile = new File("Couchbase/imports.json");
                 long importStartTime = System.nanoTime();
-                importJsonData(collection, jsonFile).join();
+                importJsonData(collection, jsonFile, liczbaDanych).join();
                 long importEndTime = System.nanoTime();
                 float importElapsedTimeMs = (float) (TimeUnit.NANOSECONDS.toMillis(importEndTime - importStartTime) / 1000.0);
                 importWriter.append(String.valueOf(i + 1)).append(",").append(String.valueOf(importElapsedTimeMs)).append("\n");
                 System.out.println("zaimportowano");
 
-                File jsonFileUpdate = new File("Couchbase/update1_"+liczbaDanych +".json");
-                long updateStartTime = System.nanoTime();
-                updateJsonData(collection, jsonFileUpdate).join();
-                long updateEndTime = System.nanoTime();
-                float updateElapsedTimeMs = (float) (TimeUnit.NANOSECONDS.toMillis(updateEndTime - updateStartTime) / 1000.0);
-                updateWriter1.append(String.valueOf(i + 1)).append(",").append(String.valueOf(updateElapsedTimeMs)).append("\n");
-                System.out.println("zaktualizowano");
-
-
-                File jsonFileUpdate2 = new File("Couchbase/update2_"+liczbaDanych +".json");
-                long updateStartTime2 = System.nanoTime();
-                updatePassengerJsonData(collection, jsonFileUpdate2).join();
-                long updateEndTime2 = System.nanoTime();
-                float updateElapsedTimeMs2 = (float) (TimeUnit.NANOSECONDS.toMillis(updateEndTime2 - updateStartTime2) / 1000.0);
-                updateWriter2.append(String.valueOf(i + 1)).append(",").append(String.valueOf(updateElapsedTimeMs2)).append("\n");
-                System.out.println("zaktualizowano 2 ");
-
-                executeAndLogSelectQuery(cluster, selectWriters[0], i + 1, "SELECT ID, Model FROM `default` WHERE Production_Year > 2000");
+                executeAndLogSelectQuery(cluster, selectWriters[0], i + 1, "SELECT id_flight, message FROM `" + collection.bucketName() + "`");
                 System.out.println("SELECT 1");
-                executeAndLogSelectQuery(cluster, selectWriters[1], i + 1, "SELECT ID, Model FROM `default` WHERE Manufacturer = \"Lockheed Martin\"");
+                executeAndLogSelectQuery(cluster, selectWriters[1], i + 1, "SELECT id_flight, message FROM `" + collection.bucketName() + "` WHERE message LIKE 'M%'");
                 System.out.println("SELECT 2");
-                executeAndLogSelectQuery(cluster, selectWriters[2], i + 1, "SELECT ID, Model, Max_Speed FROM `default` WHERE Type = \"Fighter\" AND Max_Speed > 1500");
+                executeAndLogSelectQuery(cluster, selectWriters[2], i + 1, "SELECT id_flight, message FROM `" + collection.bucketName() + "` WHERE CONTAINS(message, 'dany_podciag')");
                 System.out.println("SELECT 3");
-//                executeAndLogSelectQuery(cluster, selectWriters[3], i + 1, "SELECT ID, Model FROM `default` WHERE Max_Takeoff_Weight > 70000");
-//                System.out.println("SELECT 4");
-//                executeAndLogSelectQuery(cluster, selectWriters[4], i + 1, "SELECT ID, Model FROM `default` WHERE Max_Payload IS NULL");
-//                System.out.println("SELECT 5");
+                System.out.println();
+
+                executeAndLogUpdateQuery(collection, cluster, updateWriter1, i + 1, "JRADReeohw819465977006867827", "New message for JRADReeohw819465977006867827");
+                System.out.println("UPDATE 1");
+                executeAndLogUpdateQuery(collection, cluster, updateWriter2, i + 1, liczbaDanych);
+                System.out.println("UPDATE 2");
+
+                System.out.println();
 
                 long deleteStartTime = System.nanoTime();
                 deleteAllData(collection, cluster).join();
@@ -132,7 +110,7 @@ public class CouchbaseApplication {
         }
     }
 
-    private static CompletableFuture<Void> importJsonData(Collection collection, File jsonFile) {
+    private static CompletableFuture<Void> importJsonData(Collection collection, File jsonFile, int liczbaDanych) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode rootNode = objectMapper.readTree(jsonFile);
@@ -140,12 +118,14 @@ public class CouchbaseApplication {
                 AsyncCollection asyncCollection = collection.async();
                 List<CompletableFuture<MutationResult>> futures = new ArrayList<>();
                 Iterator<JsonNode> iterator = rootNode.iterator();
-                while (iterator.hasNext()) {
+                int importedRecords = 0;
+                while (iterator.hasNext() && importedRecords < liczbaDanych) {
                     JsonNode node = iterator.next();
                     JsonObject jsonObject = JsonObject.fromJson(node.toString());
                     String id = String.valueOf(jsonObject.getInt("ID"));
                     CompletableFuture<MutationResult> future = ((AsyncCollection) asyncCollection).upsert(id, jsonObject);
                     futures.add(future);
+                    importedRecords++;
                 }
                 CompletableFuture<Void>[] voidFutures = futures.toArray(new CompletableFuture[0]);
                 return CompletableFuture.allOf(voidFutures);
@@ -157,78 +137,6 @@ public class CouchbaseApplication {
         }
         return CompletableFuture.completedFuture(null);
     }
-
-    private static CompletableFuture<Void> updateJsonData(Collection collection, File jsonFile) {
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode rootNode = objectMapper.readTree(jsonFile);
-            if (rootNode.isArray()) {
-                AsyncCollection asyncCollection = collection.async();
-                List<CompletableFuture<MutationResult>> futures = new ArrayList<>();
-                Iterator<JsonNode> iterator = rootNode.iterator();
-                while (iterator.hasNext()) {
-                    JsonNode node = iterator.next();
-                    JsonObject jsonObject = JsonObject.fromJson(node.toString());
-                    String id = String.valueOf(jsonObject.getInt("ID"));
-                    CompletableFuture<MutationResult> future = asyncCollection.replace(id, jsonObject);
-                    futures.add(future);
-                }
-                CompletableFuture<Void>[] voidFutures = futures.toArray(new CompletableFuture[0]);
-                return CompletableFuture.allOf(voidFutures);
-            } else {
-                System.out.println("Plik JSON nie zawiera tablicy obiektów.");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return CompletableFuture.completedFuture(null);
-    }
-
-
-    private static CompletableFuture<Void> updatePassengerJsonData(Collection collection, File jsonFile) {
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode rootNode = objectMapper.readTree(jsonFile);
-            if (rootNode.isArray()) {
-                AsyncCollection asyncCollection = collection.async();
-                List<CompletableFuture<MutationResult>> futures = new ArrayList<>();
-                Iterator<JsonNode> iterator = rootNode.iterator();
-                while (iterator.hasNext()) {
-                    JsonNode node = iterator.next();
-                    JsonObject jsonObject = JsonObject.fromJson(node.toString());
-                    if (jsonObject.getString("Type").equals("Passenger")) {
-                        String id = String.valueOf(jsonObject.getInt("ID"));
-                        CompletableFuture<MutationResult> future = asyncCollection.replace(id, jsonObject);
-                        futures.add(future);
-                    }
-                }
-                CompletableFuture<Void>[] voidFutures = futures.toArray(new CompletableFuture[0]);
-                return CompletableFuture.allOf(voidFutures);
-            } else {
-                System.out.println("Plik JSON nie zawiera tablicy obiektów.");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return CompletableFuture.completedFuture(null);
-    }
-
-//    private static CompletableFuture<Void> deleteAllData(Collection collection, Cluster cluster) {
-//        String query = "DELETE FROM `" + collection.bucketName() + "`";
-//
-//        return CompletableFuture.supplyAsync(() -> {
-//            try {
-//                QueryResult queryResult = cluster.async().query(query).join();
-//                if (queryResult.metaData().status() == QueryStatus.SUCCESS) {
-//                    return null;
-//                } else {
-//                    throw new CouchbaseException("Wystąpił błąd podczas usuwania danych.");
-//                }
-//            } catch (CouchbaseException ex) {
-//                throw new RuntimeException(ex);
-//            }
-//        });
-//    }
 
     private static CompletableFuture<Void> deleteAllData(Collection collection, Cluster cluster) {
         String query = "DELETE FROM `" + collection.bucketName() + "`";
@@ -244,18 +152,46 @@ public class CouchbaseApplication {
             }
         });
     }
-//    private static void executeAndLogSelectQuery(Cluster cluster, FileWriter writer, int iteration, String query) throws IOException {
-//        long startTime = System.nanoTime();
-//        QueryResult result = cluster.async().query(query).join();
-//        long endTime = System.nanoTime();
-//        float elapsedTimeMs = (float) (TimeUnit.NANOSECONDS.toMillis(endTime - startTime)/1000.0);
-//        writer.append(iteration + "," + elapsedTimeMs + "\n");
-//    }
-private static void executeAndLogSelectQuery(Cluster cluster, FileWriter writer, int iteration, String query) throws IOException {
-    long startTime = System.nanoTime();
-    QueryResult result = cluster.query(query, QueryOptions.queryOptions().scanConsistency(QueryScanConsistency.REQUEST_PLUS));
-    long endTime = System.nanoTime();
-    float elapsedTimeMs = (float) (TimeUnit.NANOSECONDS.toMillis(endTime - startTime) / 1000.0);
-    writer.append(iteration + "," + elapsedTimeMs + "\n");
-}
+    private static void executeAndLogSelectQuery(Cluster cluster, FileWriter writer, int iteration, String query) throws IOException {
+        long startTime = System.nanoTime();
+        QueryResult result = cluster.async().query(query).join();
+        long endTime = System.nanoTime();
+        float elapsedTimeMs = (float) (TimeUnit.NANOSECONDS.toMillis(endTime - startTime)/1000.0);
+        writer.append(iteration + "," + elapsedTimeMs + "\n");
+    }
+
+
+    private static void executeAndLogUpdateQuery(Collection collection, Cluster cluster, FileWriter writer, int iteration, String documentId, String newMessage) throws IOException {
+        long startTime = System.nanoTime();
+        try {
+            JsonObject content = JsonObject.create().put("message", newMessage);
+            MutationResult result = collection.upsert(documentId, content);
+            long endTime = System.nanoTime();
+            float elapsedTimeMs = (float) (TimeUnit.NANOSECONDS.toMillis(endTime - startTime) / 1000.0);
+            writer.append(iteration + "," + elapsedTimeMs + "\n");
+        } catch (CouchbaseException e) {
+            System.err.println("Błąd podczas upsertowania dokumentu: " + e.getMessage());
+        }
+    }
+
+    private static void executeAndLogUpdateQuery(Collection collection, Cluster cluster, FileWriter writer, int iteration, int liczbaDanych) throws IOException {
+        long startTime = System.nanoTime();
+        try {
+            List<CompletableFuture<MutationResult>> futures = new ArrayList<>();
+            AsyncCollection asyncCollection = collection.async();
+            for (int i = 0; i < liczbaDanych; i++) {
+                String documentId = "Document_" + i;
+                JsonObject content = JsonObject.create().put("message", "New message for " + documentId);
+                CompletableFuture<MutationResult> future = asyncCollection.upsert(documentId, content);
+                futures.add(future);
+            }
+            CompletableFuture<Void>[] voidFutures = futures.toArray(new CompletableFuture[0]);
+            CompletableFuture.allOf(voidFutures).join();
+            long endTime = System.nanoTime();
+            float elapsedTimeMs = (float) (TimeUnit.NANOSECONDS.toMillis(endTime - startTime) / 1000.0);
+            writer.append(iteration + "," + elapsedTimeMs + "\n");
+        } catch (CouchbaseException e) {
+            System.err.println("Błąd podczas upsertowania dokumentów: " + e.getMessage());
+        }
+    }
 }
