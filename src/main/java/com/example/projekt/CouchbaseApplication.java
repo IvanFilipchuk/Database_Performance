@@ -53,7 +53,7 @@ public class CouchbaseApplication {
             updateWriter2 = new FileWriter("charts/update/couchbase_update2_time_"+liczbaDanych +".csv");
             deleteWriter = new FileWriter("charts/delete/couchbase_delete_time_"+liczbaDanych +".csv");
             for (int i = 0; i < 3; i++) {
-                selectWriters[i] = new FileWriter("charts/read/couchbase_new_select" + (i + 1) + "_time_"+liczbaDanych +".csv");
+                selectWriters[i] = new FileWriter("charts/read/couchbase_select" + (i + 1) + "_time_"+liczbaDanych +".csv");
             }
 
 

@@ -3,11 +3,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 
-def read_csv_files(directory):
+def read_csv_files(directory,num_records):
     data = {}
     for root, _, files in os.walk(directory):
         for file in files:
-            if file.endswith('100.csv'):
+            if file.endswith(str(num_records)+'.csv'):
                 db, operation, _, count = file.split('_')
                 key = f"{db}_{operation}"
                 filepath = os.path.join(root, file)
@@ -31,7 +31,7 @@ def plot_data(data, num_records):
                 for df in df_list:
                     sorted_df = df.sort_values(by='index')
                     sorted_df['time'] = pd.to_numeric(sorted_df['time'], errors='coerce')
-                    plt.plot(sorted_df['index'][:num_records], sorted_df['time'][:num_records], color=color, label=db)
+                    plt.plot(sorted_df['index'][:], sorted_df['time'][:], color=color, label=db)
                     min_time = min(min_time, sorted_df['time'].min(skipna=True))
                     max_time = max(max_time, sorted_df['time'].max(skipna=True))
 
@@ -47,11 +47,10 @@ def plot_data(data, num_records):
         plt.show()
 
 num_records = 10000
-
 directories = ['create', 'read', 'update', 'delete']
 all_data = {}
 for directory in directories:
-    data = read_csv_files(directory)
+    data = read_csv_files(directory,num_records)
     all_data.update(data)
 plot_data(all_data, num_records)
 
