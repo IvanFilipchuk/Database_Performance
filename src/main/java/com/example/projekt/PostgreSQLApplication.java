@@ -37,7 +37,7 @@ public class PostgreSQLApplication {
             FileWriter writer = new FileWriter("charts/create/postgresql_import_time_" + numberOfRecords + ".csv");
             FileWriter writerDelete = new FileWriter("charts/delete/postgresql_delete_time_" + numberOfRecords + ".csv");
 
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < 1000; i++) {
                 float totalImportTime = 0;
                 totalImportTime += executeSqlJdbc(connection, "PostgreSQL_data/imports.sql",numberOfRecords);
                 totalImportTime += executeSqlJdbc(connection, "PostgreSQL_data/imports2.sql",numberOfRecords);
@@ -122,7 +122,7 @@ public class PostgreSQLApplication {
             //executeSqlJdbc(connection, "PostgreSQL_data/db_structure.sql", -1);
             executeSqlJdbc(connection, "PostgreSQL_data/imports.sql", numberOfRecords);
 
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < 1000; i++) {
                 float jdbcElapsedTime;
 
                 long updateTime = System.nanoTime();
